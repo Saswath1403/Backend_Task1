@@ -40,7 +40,6 @@ const registerStudent = async function (req, res) {
         .status(400)
         .send({ status: false, message: "The input string cannot be empty!" });
     subject = subject
-      .trim()
       .split(" ")
       .filter((x) => x)
       .join(" ");
@@ -189,6 +188,39 @@ const updateStudent = async function (req, res) {
 
     if (!marks) {
       let itemsToCreate = { name, subject };
+
+      if (!name)
+        return res
+          .status(400)
+          .send({ status: false, message: "Name is mandatory!" });
+      if (!isValid(name))
+        return res
+          .status(400)
+          .send({
+            status: false,
+            message: "The input string cannot be empty!",
+          });
+      name = name
+        .split(" ")
+        .filter((x) => x)
+        .join(" ");
+
+      if (!subject)
+        return res
+          .status(400)
+          .send({ status: false, message: "subject is mandatory!" });
+      if (!isValid(subject))
+        return res
+          .status(400)
+          .send({
+            status: false,
+            message: "The input string cannot be empty!",
+          });
+      subject = subject
+        .split(" ")
+        .filter((x) => x)
+        .join(" ");
+
       const create = await studentModel.create(itemsToCreate);
       return res.status(201).send({
         status: true,

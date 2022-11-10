@@ -13,7 +13,7 @@ const {
 const registerAdmin = async function (req, res) {
   try {
     const body = req.body;
-    let { fname, lname, email } = body;
+    let { fname, lname, email, password } = body;
 
     if (!isEmpty(body))
       return res
