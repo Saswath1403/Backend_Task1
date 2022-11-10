@@ -28,7 +28,7 @@ route.get("/student", authentication, getStudentById);
 
 // Update Api Route
 route.put(
-  "/student/:adminId/:studentId",
+  "/student/:adminId",
   authentication,
   authorisation,
   updateStudent

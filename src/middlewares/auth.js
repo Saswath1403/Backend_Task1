@@ -6,8 +6,7 @@ const { isValidObjectId } = require("../validations/validator.js");
 
 const authentication = async function (req, res, next) {
   try {
-    let token = req.headers["X-Api-key"];
-    if (!token) token = req.headers["x-api-key"];
+    let token = req.headers["x-api-key"];
     if (!token)
       return res.send({ status: false, message: "token must be present" });
     jwt.verify(token, "backend_task1", function (err, decoded) {

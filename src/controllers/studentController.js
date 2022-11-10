@@ -44,20 +44,41 @@ const registerStudent = async function (req, res) {
       .filter((x) => x)
       .join(" ");
 
-    if (marks || marks === "") {
-      if (!isNumber(marks))
-        return res.status(400).send({
-          status: false,
-          message: "The input should be in number only!",
-        });
-    }
+    if (!marks)
+      return res
+        .status(400)
+        .send({ status: false, message: "marks is mandatory!" });
+    if (!isNumber(marks))
+      return res.status(400).send({
+        status: false,
+        message: "The input should be in number only!",
+      });
 
-    const create = await studentModel.create(body);
-    return res.status(201).send({
-      status: true,
-      message: `${name} has been registred!`,
-      data: create,
+    const existingStudent = await studentModel.findOne({
+      name: name,
+      subject: subject,
+      isDeleted: false,
     });
+    if (existingStudent) {
+      let updatedMarks = existingStudent.marks + marks;
+      const updatedStudent = await studentModel.findOneAndUpdate(
+        { name: name, subject: subject, isDeleted: false },
+        { $set: { updatedMarks, updatedAt: new Date() } },
+        { new: true }
+      );
+      return res.status(200).send({
+        status: true,
+        message: `${existingStudent.name} marks updated!`,
+        updatedStudent,
+      });
+    } else {
+      const create = await studentModel.create(body);
+      return res.status(201).send({
+        status: true,
+        message: `${name} has been registred!`,
+        data: create,
+      });
+    }
   } catch (err) {
     return res.status(500).send({ status: false, message: err.message });
   }
@@ -96,7 +117,7 @@ const getStudentList = async function (req, res) {
 
     const studentList = await studentModel
       .find(filter)
-      .select({ name: 1, subject: 1 });
+      .select({ name: 1, subject: 1, marks: 1 });
 
     if (studentList.length === 0)
       return res
@@ -143,12 +164,6 @@ const getStudentById = async function (req, res) {
 
 const updateStudent = async function (req, res) {
   try {
-    const studentId = req.params.studentId;
-    if (!isValidObjectId(studentId))
-      return res
-        .status(400)
-        .send({ status: false, msg: "StudentId is invalid!" });
-
     const body = req.body;
     let { name, subject, marks } = body;
     if (!isEmpty(body))
@@ -156,83 +171,40 @@ const updateStudent = async function (req, res) {
         .status(400)
         .send({ status: false, message: "Body cannot be empty!" });
 
-    let student = await studentModel.findOne({
-      _id: studentId,
-      isDeleted: false,
-    });
-    if (!student)
+    if (!isValid(name))
+      return res.status(400).send({ status: false, msg: "Please enter name!" });
+
+    if (!isValid(subject))
       return res
-        .status(404)
-        .send({ status: false, message: "student not found!" });
-
-    if (name) {
-      if (!isValid(name))
-        return res
-          .status(400)
-          .send({ status: false, msg: "Please enter name!" });
-    }
-
-    if (subject) {
-      if (!isValid(subject))
-        return res
-          .status(400)
-          .send({ status: false, msg: "Please enter subject!" });
-    }
-
-    if (marks) {
-      if (!isNumber(marks))
-        return res
-          .status(400)
-          .send({ status: false, msg: "Please enter marks in number format!" });
-    }
+        .status(400)
+        .send({ status: false, msg: "Please enter subject!" });
 
     if (!marks) {
-      let itemsToCreate = { name, subject };
+      return res
+        .status(400)
+        .send({ status: false, msg: "Please enter marks!" });
+    }
+    if (!isNumber(marks))
+      return res
+        .status(400)
+        .send({ status: false, msg: "Please enter marks in number format!" });
 
-      if (!name)
-        return res
-          .status(400)
-          .send({ status: false, message: "Name is mandatory!" });
-      if (!isValid(name))
-        return res
-          .status(400)
-          .send({
-            status: false,
-            message: "The input string cannot be empty!",
-          });
-      name = name
-        .split(" ")
-        .filter((x) => x)
-        .join(" ");
+    let student = await studentModel.findOne({
+      name: name,
+      subject: subject,
+      marks: marks,
+      isDeleted: false,
+    });
 
-      if (!subject)
-        return res
-          .status(400)
-          .send({ status: false, message: "subject is mandatory!" });
-      if (!isValid(subject))
-        return res
-          .status(400)
-          .send({
-            status: false,
-            message: "The input string cannot be empty!",
-          });
-      subject = subject
-        .split(" ")
-        .filter((x) => x)
-        .join(" ");
-
-      const create = await studentModel.create(itemsToCreate);
-      return res.status(201).send({
-        status: true,
-        message: `${name} has been registred!`,
-        data: create,
+    if (student) {
+      return res.status(409).send({
+        status: false,
+        msg: "Cannot update because their is another student with the same details!",
       });
     } else {
-      let updatedMarks = student.marks + marks;
-
       const updatedStudent = await studentModel.findOneAndUpdate(
-        { _id: studentId },
-        { $set: { name, subject, updatedMarks, updatedAt: new Date() } },
+        { name, subject, marks },
+        { $set: { name, subject, marks, updatedAt: new Date() } },
         { new: true }
       );
       return res.status(200).send({

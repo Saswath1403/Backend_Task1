@@ -16,7 +16,7 @@ const studentSchema = new mongoose.Schema(
     },
     marks: {
       type: Number,
-      default: 0,
+      required: true,
     },
     isDeleted: {
       type: Boolean,

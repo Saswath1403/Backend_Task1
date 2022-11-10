@@ -11,11 +11,10 @@ const {
 //-------------------------------[1st Api => Registering Admin]-----------------------------//
 
 const registerAdmin = async function (req, res) {
-  try {
-    const body = req.body;
-    let { fname, lname, email, password } = body;
+  try { 
+    let { fname, lname, email, password } = req.body;
 
-    if (!isEmpty(body))
+    if (!isEmpty(req.body))
       return res
         .status(400)
         .send({ status: false, message: "Body cannot be empty!" });
@@ -75,10 +74,9 @@ const registerAdmin = async function (req, res) {
       });
 
     //creating hash password by using bcrypt
-    const passwordHash = await bcrypt.hash(password, 10);
-    password = passwordHash;
+    password = await bcrypt.hash(password, 10);
 
-    const create = await adminModel.create(body);
+    const create = await adminModel.create( {fname, lname, email, password} );
     return res.status(201).send({
       status: true,
       message: `Admin ${fname} is now registered!`,
@@ -122,7 +120,7 @@ const loginAdmin = async function (req, res) {
           "Password must be 8 to 15 characters and in alphabets and numbers only!",
       });
 
-    let admin = await adminModel.findOne({ email: email });
+    let admin = await adminModel.findOne({ email });
     if (!admin)
       return res.status(404).send({
         status: false,
@@ -130,11 +128,11 @@ const loginAdmin = async function (req, res) {
       });
 
     //password check by comparing request body password and the password from bcrypt hash password
-    let passwordCheck = await bcrypt.compare(req.body.password, admin.password);
+    let passwordCheck = await bcrypt.compare(password, admin.password);
     //request body password and bcrypt hash password not match
     if (!passwordCheck)
       return res
-        .status(400)
+        .status(401)
         .send({ status: false, message: "password is not correct!" });
 
     //Creating Token by jsonwebtoken
@@ -143,6 +141,7 @@ const loginAdmin = async function (req, res) {
         //Payload
         adminId: admin._id.toString(),
         company: "Functionup",
+        batch: "Radon",
         iat: Math.floor(Date.now() / 1000),
         exp: Math.floor(Date.now() / 1000) + 480 * 60 * 60,
       },
@@ -157,7 +156,6 @@ const loginAdmin = async function (req, res) {
         data: { adminId: admin._id, token },
       });
   } catch (err) {
-    console.log("This is the error:", err.message);
     return res.status(500).send({ status: false, message: err.message });
   }
 };
