@@ -12,8 +12,7 @@ const authentication = async function (req, res, next) {
     jwt.verify(token, "backend_task1", function (err, decoded) {
       if (err) {
         return res.status(401).send({ status: false, message: err.message });
-      } else {
-        console.log(decoded);
+      } else {;
         req.decodedToken = decoded;
         next();
       }

@@ -24,11 +24,11 @@ route.post("/student/register/:adminId", authentication, registerStudent);
 
 // Get Api Routes
 route.get("/students", authentication, getStudentList);
-route.get("/student", authentication, getStudentById);
+route.get("/student/:studentId", authentication, getStudentById);
 
 // Update Api Route
 route.put(
-  "/student/:adminId",
+  "/student/:adminId/:studentId",
   authentication,
   authorisation,
   updateStudent
@@ -36,7 +36,7 @@ route.put(
 
 // Delete Api Routes
 route.delete(
-  "/students/:adminId/:studentId",
+  "/students/:adminId",
   authentication,
   authorisation,
   deleteStudents

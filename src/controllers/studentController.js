@@ -164,6 +164,7 @@ const getStudentById = async function (req, res) {
 
 const updateStudent = async function (req, res) {
   try {
+    let studentId = req.params.studentId;
     const body = req.body;
     let { name, subject, marks } = body;
     if (!isEmpty(body))
@@ -199,11 +200,11 @@ const updateStudent = async function (req, res) {
     if (student) {
       return res.status(409).send({
         status: false,
-        msg: "Cannot update because their is another student with the same details!",
+        msg: "Cannot update, a student with the same details alreay exists in the database!",
       });
     } else {
       const updatedStudent = await studentModel.findOneAndUpdate(
-        { name, subject, marks },
+        { _id: studentId },
         { $set: { name, subject, marks, updatedAt: new Date() } },
         { new: true }
       );
@@ -257,7 +258,7 @@ const deleteStudents = async function (req, res) {
 
     res.status(200).send({
       status: true,
-      message: "Students have been deleted successfully!",
+      message: "Requested data has been removed!",
     });
   } catch (err) {
     return res.status(500).send({ status: false, message: err.message });
@@ -291,7 +292,7 @@ const deleteStudentById = async (req, res) => {
 
     res.status(200).send({
       status: true,
-      message: `${student.name} has been deleted successfully!`,
+      message: `${student.name} has been removed!`,
     });
   } catch (err) {
     return res.status(500).send({ status: false, message: err.message });
