@@ -20,7 +20,7 @@ mongoose
 app.use("/", route);
 
 route.all("/*", function (req, res) {
-  res.status(400).send({
+  res.status(404).send({
     status: false,
     msg: "The api you request is not available!",
   });
